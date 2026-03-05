@@ -4,6 +4,7 @@ import express from 'express';
 
 import { requestLogger } from './middleware/logging';
 import { initializeDatabase, testConnection } from './services/database';
+import dbService from './services/db.service';
 import logger from './services/logger';
 
 // Load environment variables
@@ -18,12 +19,39 @@ app.use(cors());
 app.use(express.json());
 
 // Health check route
-app.get('/health', (req, res) => {
-  res.status(200).json({
+app.get('/health', async (req, res) => {
+  const healthCheck = {
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-  });
+    database: {
+      status: 'unknown',
+      responseTime: 0,
+      error: null as string | null
+    }
+  };
+
+  try {
+    // Test database connection with SELECT NOW()
+    const startTime = Date.now();
+    const isConnected = await dbService.testConnection();
+    const responseTime = Date.now() - startTime;
+
+    if (isConnected) {
+      healthCheck.database.status = 'connected';
+      healthCheck.database.responseTime = responseTime;
+    } else {
+      healthCheck.database.status = 'disconnected';
+      healthCheck.status = 'degraded'; // Server is up but DB is down
+    }
+  } catch (error) {
+    healthCheck.database.status = 'error';
+    healthCheck.database.error = error instanceof Error ? error.message : 'Unknown error';
+    healthCheck.status = 'degraded';
+  }
+
+  const statusCode = healthCheck.status === 'ok' ? 200 : 503;
+  res.status(statusCode).json(healthCheck);
 });
 
 // Initialize database and start server
