@@ -11,11 +11,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Development image
+# Development image (for tests and development)
 FROM base AS dev
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm ci # Instala todas las dependencias incluyendo devDependencies
 COPY . .
 CMD ["npm", "run", "dev"]
 

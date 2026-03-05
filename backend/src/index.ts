@@ -6,6 +6,7 @@ import { requestLogger } from './middleware/logging';
 import { initializeDatabase, testConnection } from './services/database';
 import dbService from './services/db.service';
 import logger from './services/logger';
+import authRoutes from './api/auth.routes';
 
 // Load environment variables
 dotenv.config();
@@ -53,6 +54,9 @@ app.get('/health', async (req, res) => {
   const statusCode = healthCheck.status === 'ok' ? 200 : 503;
   res.status(statusCode).json(healthCheck);
 });
+
+// Rutas de autenticación
+app.use('/api/v1/auth', authRoutes);
 
 // Initialize database and start server
 async function startServer() {
