@@ -11,6 +11,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # El healthcheck verifica si Postgres realmente acepta conexiones
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-fintech_app}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build: 
@@ -18,7 +24,8 @@ services:
       dockerfile: Dockerfile
     container_name: fintech_api
     depends_on:
-      - db
+      db:
+        condition: service_healthy # Espera a que el healthcheck de 'db' sea exitoso
     environment:
       DATABASE_URL: postgresql://${DB_USER:-admin}:${DB_PASSWORD:-password123}@db:5432/${DB_NAME:-fintech_app}
       JWT_SECRET: ${JWT_SECRET}
