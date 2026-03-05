@@ -73,10 +73,6 @@ class DatabaseService {
    * @returns Query result
    */
   async query(text: string, params?: any[]): Promise<any> {
-    if (!this.isConnected) {
-      throw new Error('Database not connected. Call connect() first.');
-    }
-
     try {
       const result = await this.pool.query(text, params);
       return result;
@@ -91,10 +87,6 @@ class DatabaseService {
    * @returns Database client
    */
   async getClient(): Promise<PoolClient> {
-    if (!this.isConnected) {
-      throw new Error('Database not connected. Call connect() first.');
-    }
-
     try {
       const client = await this.pool.connect();
       return client;

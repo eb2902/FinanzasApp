@@ -35,4 +35,16 @@ router.get('/kyc-required',
   }
 );
 
+router.get('/protected', 
+  authMiddleware.authenticate, 
+  authMiddleware.requireKYCStatus, 
+  (req, res) => {
+    res.json({
+      success: true,
+      message: 'Ruta protegida accedida exitosamente',
+      user: req.user
+    });
+  }
+);
+
 export default router;
